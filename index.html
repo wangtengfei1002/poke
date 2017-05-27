@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>扑克牌</title>
+	<script src="jquery-3.2.1.js" type="text/javascript" charset="utf-8"></script>
+</head>
+	<style type="text/css">
+		.table{
+			width: 700px;
+			height: 720px;
+			margin: 60px auto;
+			position: relative;
+		}
+		.table .poke{
+			width: 90px;
+			height: 150px;
+			position: absolute;
+			left: 300px;
+			top: 0;
+			border: 3px solid #ff6700;
+			text-align: center;
+			opacity: 0;
+			background-size: 90px 150px;
+			/*transition: all 1s linear;*/
+		}
+		.table .active{
+			border-color: #0000FF;
+		}
+		[class^=move]{
+			width: 80px;
+			height: 30px;
+			border-radius: 4px;
+			background: #FF6700;
+			position: absolute;
+			left:310px;
+			top:580px;
+			text-align: center;
+			color: #fff;
+			outline: none;
+		}
+		[class=mover]{
+			top:640px;
+		}
+	</style>
+<body style="background-image: url(../../新建文件夹/5.15/表格/img/913-130I0153122-53.jpg);background-size: cover;">
+	<div class="table">
+		<button class="movel">向左</button>
+		<button class="mover">向右</button>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	$(function(){
+		
+	
+	let poke=[];
+	let biao={};
+	let color =['h','c','s','d'];
+	let movel=$('.movel');
+	let mover=$('.mover')
+//	for(let i=0;i<52;i++){
+//		let huase = color[Math.floor(Math.random()*4)];
+//		let shuzi = Math.floor(Math.random()*13+1);
+//		while(biao[huase+'_'+shuzi]){
+//			huase = color[Math.floor(Math.random()*4)];
+//			shuzi = Math.floor(Math.random()*13+1);
+//		}
+//		biao[huase+'_'+shuzi]=true
+//		poke.push({huase,shuzi})
+//	}
+	//产生
+	while(poke.length<52){
+		var huase = color[Math.floor(Math.random()*4)];
+		var shuzi = Math.floor(Math.random()*13+1);
+		//biao[c_9]{huase:s,shuzi:5} biao['s_5']=true
+		if(!biao[huase+'_'+shuzi]){
+			biao[huase+'_'+shuzi]=true;
+			poke.push({huase,shuzi});
+		}
+	}
+	let index = 0;
+	for(let i=0;i<7;i++){
+		for(let j=0;j<=i;j++){
+			let item = poke[index];
+			//item = {huase:'s',shuzi:5}
+			index++;
+			let  src = 'url(img/'+item.huase+item.shuzi+'.png)'
+//			console.log(src)
+			$('<div>').addClass('poke')
+//			.html(`${item.huase}--${item.shuzi}`)
+			.css('backgroundImage',src)
+			.data('num',item.shuzi)
+			.delay(30*index)
+			.prop('id',`${i}_${j}`)
+			.animate({
+				left:305-i*50+100*j,top:60*i,opacity:1
+			})
+			.appendTo('.table')
+		}
+	}
+	for(;index<poke.length;index++){
+			let item = poke[index];
+			//item = {huase:'s',shuzi:5}
+			let  src = 'url(img/'+item.huase+item.shuzi+'.png)'
+			console.log(src)
+			$('<div>').addClass('poke zuo')
+//			.html(`${item.huase}--${item.shuzi}`)
+			.data('num',item.shuzi)
+			.css('backgroundImage',src)
+			.delay(30*index)
+			.animate({
+				left:105,top:530,opacity:1
+			})
+			.appendTo('.table')
+	}
+	let first=null;
+	$('.poke').click(function(){
+		// 6,2 7,2 7,3
+		//x,y  x=1,y  x+1,y+1
+		let coords = $(this).prop('id').split('_');
+		let ele =$(`#${parseInt(coords[0])+1}_${parseInt(coords[1]+1)}`)
+		let ele1 =$(`#${parseInt(coords[0])+1}_${parseInt(coords[1])}`)
+		if(ele.length==1||ele1.length==1){
+			return 
+		}
+		$(this).toggleClass('active');
+		if($(this).hasClass('active')){
+			$(this).animate({top:'-=20'})
+		}else{
+			$(this).animate({top:'+=20'})
+		}	
+		if(!first){		
+			let sum=$(this).data('num')
+			if(sum==13){
+				$('.active').animate({top:0,left:800}).queue(function(){
+					$(this).remove()
+				})
+				first=null;
+			}
+			first=this;
+		}else{
+			let sum=$(first).data('num')+$(this).data('num')
+			if(sum==13){
+//				$('.active').animate({top:0,left:800},function(){
+//					$(this).remove()
+//				})
+				$('.active').animate({top:0,left:800}).queue(function(){
+					$(this).remove()
+					first=null;
+				})
+			}
+			else{
+				$('.active').animate({top:'+=20'}).removeClass('active');
+				first=null;
+			}
+		}
+	})
+	let z=1;
+	mover.on('click',function(){
+		z++
+		$('.zuo:last')
+			.removeClass('zuo')
+			.addClass('you')
+			.animate({left:'+=400'})
+			.css('zIndex',z)
+	})
+	movel.on('click',function(){
+		let you=$('.you');
+		if(you.length==0){
+			return;
+		}
+		for(let i=you.length-1;i>=0;i--){
+			$(you[i])
+			.delay(100*i)
+			.animate({left:'-=200',width:'0'},function(){
+				$(this).css('zIndex',0)
+			})
+			.animate({left:'-=200',width:'90px'})
+			.addClass('zuo')
+			.removeClass('you');			
+		}		
+	})
+	
+})
+</script>
